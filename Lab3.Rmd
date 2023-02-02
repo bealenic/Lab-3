@@ -114,7 +114,7 @@ First read them back into active memory.
 ```{r}
 wolfused <-read.csv(here::here("Data","wolfused.csv"), header = TRUE)
 wolfavail <-read.csv(here::here("Data","wolfavail.csv"), header = TRUE)
-wolfkde <- rbind(wolfused, wolfavail)
+wolfkde <- rbind(wolfused, wolfavail) #can rbind bc columns are in same order
 str(wolfkde)
 table(wolfkde$used, wolfkde$pack)
 table(wolfkde$used, wolfkde$deer_w2)
@@ -151,7 +151,7 @@ Note that the above analyses are for both packs combined, but your analyses last
 
 ```{r}
 ## subset for Bow Valley Pack
-bvkde<- subset(wolfkde, subset=pack =="Bow Valley")
+bvkde<- subset(wolfkde, subset=pack =="Bow Valley") ### could just do factor
 par(mfrow = c(2,3))
 boxplot(deer_w2~usedFactor, data=bvkde, main = "Deer", xlab="usedFactor", ylab="deer")
 boxplot(elk_w2~usedFactor, data=bvkde, main = "Elk", ylab="elk_w2", xlab="usedFactor")
@@ -212,11 +212,13 @@ bwplot(sheep_w2+ goat_w2 + elk_w2+moose_w2+ deer_w2~as.factor(usedFactor)|pack, 
 ```{r}
 aggregate(wolfkde[1:9], by=list(wolfkde$pack, wolfkde$usedFactor), FUN=mean, na.rm=TRUE)
 
-wolf_df <- as_tibble(wolfkde)
+wolf_df <- as_tibble(wolfkde) 
 wolf_df %>% group_by(pack, used) %>% summarise(mean(Elevation2))
 wolf_df %>% group_by(pack, used) %>% summarise(dha = mean(DistFromHumanAccess2))
 ```
-Why are there missing data for Bow Valley Available Locations? Missing data... lets remove it
+Why are there missing data for Bow Valley Available Locations? Missing data... lets remove it 
+
+# Tibble can't compute a mean if there are NAs
 
 ```{r}
 wolfkde2 <- na.omit(wolfkde)
@@ -229,6 +231,7 @@ wolf_df %>% group_by(pack, used) %>% summarise(elk = mean(elk_w2))
 wolf_df %>% group_by(pack, used) %>% summarise(sheep = mean(sheep_w2))
 wolf_df %>% group_by(pack, used) %>% summarise(deer = mean(deer_w2))
 wolf_df %>% group_by(pack, used) %>% summarise(goat = mean(goat_w2))
+
 
 ```
 
