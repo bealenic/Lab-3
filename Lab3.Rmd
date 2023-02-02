@@ -244,9 +244,9 @@ learn more about
 ?plogis() and ? rbinom()
 ```{r}
 ## First lets flip fair coins 100 times
-rbinom(100, 1, 0.5)
+rbinom(100, 1, 0.5)   #r simulates - think 'results' of binom
 trial = rbinom(100, 1, 0.5)
-sum(trial)
+sum(trial) 
 
 ## What about say, a survival probability of 0.9.
 surv1 <- rbinom(100, 1, 0.9)
@@ -258,7 +258,7 @@ So 92 animals survived, say.  (it will depend on your simulation).
 plogis is the distribution function for converting a value from the logistic scale to a real probability
 ```{r}
 plogis(0)
-## note that if p = 0, then the probability of an outcome is 0.5, heads or tails - i.e., a fair coin. 
+## note that if p = 0, then the probability of an outcome is 0.5, heads or tails - i.e., a fair coin - logit scale centers around zero
 plogis(1)
 plogis(-5)
 plogis(-100)
@@ -270,7 +270,7 @@ Note that no matter what real number we put in plogis, the resultant probability
 Next we will simulate 101 numbers from -50 to 50, and then imagine we are conducting a single binomial trial at each value from -50 to 50. The probability, say, selecting a discrete habitat value increases with each value of x according to the Logistic beta coefficient of 0.07
 ```{r}
 x = c(-50:50) ## just creating a uniform vector from -50 to 50. 
-y = rbinom(length(x), 1, plogis(0+0.07*x) )
+y = rbinom(length(x), 1, plogis(1 - 0.01*x) )
 ## unpack this line by ?rbinom
 ## and ? plogis
 
