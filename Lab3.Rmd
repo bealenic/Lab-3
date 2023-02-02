@@ -311,6 +311,7 @@ Next we will explore logistic regression using univariate logistic regression fo
 ```{r}
 elev <- glm(used ~ Elevation2, family=binomial(logit), data=wolfkde)
 summary(elev)
+# intercept means plogis scale probability at 0
 ## exploring univarite logistic regression
 ## how to obtain 95% confidence intervals? Where are they in the output?
 ## CI's using profile log-likelihood's
@@ -344,6 +345,8 @@ summary(elev100)
 exp(coef(elev100))
 ```
 We would conclude that for every increase in 100 meters of elevation, the odds of wolf use decreases by 0.528. Therefore the interpretation of the odds ratio is scale dependent. 
+
+## interpreting things in probability is not useful bc you don't know the true absolute probability - odds express relative relationships bw probaility of success or failure
 
 ## Plotting Predictions
 Next, lets continue by extracting predictions from our Elevation model. First, we create a new vector of elevations from 0 to 3000m , the approximate range of elevations in BNP where wolves were observed or could have been (avail). 
@@ -392,7 +395,7 @@ lines(disthumanBnp, disthumanPred, type="l", ylab= "Pr(Used)")
 Similarly, how do wolves respond to high human activity?
 
 ```{r}
-## next human use
+## next high human use
 distHHuman <- glm(used ~ DistFromHighHumanAccess2, family=binomial(logit), data=wolfkde)
 summary(distHHuman)
 hist(wolfkde$DistFromHighHumanAccess2)
@@ -436,10 +439,10 @@ Now lets go back to our elevation object and save predictions from the Elevation
 ## back to elevation
 elev <- glm(used ~ Elevation2, family=binomial(logit), data=wolfkde)
 summary(elev)
-wolfkde$fitted.Elev <- fitted(elev)
+wolfkde$fitted.Elev <- fitted(elev) #prob of use based on elevation
 head(wolfkde)
 hist(wolfkde$fitted.Elev)
-plot(wolfkde$fitted.Elev, wolfkde$Elevation2)
+plot(wolfkde$Elevation2, wolfkde$fitted.Elev)
 ```
 
 
@@ -454,7 +457,7 @@ ggplot(wolfkde, aes(x=fitted.Elev)) + geom_histogram(binwidth=0.05, fill="gray70
 ggplot(wolfkde, aes(x=fitted.Elev)) + geom_histogram(binwidth=0.05, fill="gray70", colour="black") + facet_grid(used ~ ., scales = "free")
 ggplot(wolfkde, aes(x=fitted.Elev, fill=usedFactor)) + geom_histogram(binwidth=0.05, position="identity", alpha=0.7) + xlab("Predicted Probability of Wolf Use") + theme(axis.title.x=element_text(size=16))
 # lets redo this graph using faceting by pack
-ggplot(wolfkde, aes(x = fitted.Elev, y=after_stat(density), fill=usedFactor)) + geom_histogram(binwidth=0.05, position="identity", alpha=0.7) + xlab("Predicted Probability of Wolf Use") + theme(axis.title.x=element_text(size=16)) + facet_grid(pack ~ ., scales="free")
+ggplot(wolfkde, aes(x = fitted.Elev, y=after_stat(density), fill=usedFactor)) + geom_histogram(binwidth=0.05, position="identity", alpha=0.7) + xlab("Predicted Probability of Wolf Use") + theme(axis.title.x=element_text(size=16)) + facet_grid(pack ~ ., scales="free") #density histo bc pack sample sizes are different
 ```
 This gives us a firm sense that things differ by pack, not only the # of locations, but also the relatively lower predicted probability of use for the Red deer wolf pack compared to the Bow Valley wolf pack. Why is this? Remind ourselves of the structure of our model - it is a simple GLM of used ~ elevation, with no differences or accounting for differences between wolf packs.  You can imagine an excercise would be to estimate the pack-specific univariate beta-coefficients between wolf packs for the same suite of covariates.  What ecological questions would this address? 
 
@@ -467,7 +470,7 @@ ggplot(wolfkde, aes(x=fitted.Elev, y=..density.., fill=usedFactor)) + geom_histo
 
 ```
 
-## Plotting Logistic Regresson with ggplot2
+## Plotting Logistic Regresson with ggplot2 - DO THIS IN PRACTICE
 
 ggplot2 has a great handy function called + stat_smooth for plotting logistic regression. stat_smooth() can be specified to fit a univariate glm with a binomial logistic regression model beween y~x, and add this plot - with its 95% CI - to a gpplot. 
 ```{r}
@@ -539,7 +542,7 @@ and https://www.r-bloggers.com/high-resolution-figures-in-r/
 #Printing PDFs from R
 pdf("Output/wolf_elev.pdf", width=4, height=4)
 print(ggplot(wolfkde, aes(x=Elevation2, y=used)) + geom_point(colour="gray") + stat_smooth(method="glm", method.args = list(family="binomial")) + xlab("Elevation (m)") + ylab("Predicted Probability of Wolf Use"))
-dev.off()
+dev.off() #turns printing off
 # then go and look in the active directory for wolf_elev.pdf
 #or
 ggsave("Output/elev_wolf2.pdf", width=4, height=4)
@@ -555,10 +558,14 @@ Latham, A. D. M., M. C. Lathan, K. H. Knopff, M. Hebblewhite, and S. Boutin. 201
 ```{r}
 figPrey<-ggplot(wolfkde, aes(x=elk_w2, y=used)) + geom_smooth(data = wolfkde, aes(x=elk_w2, y=used, col="Elk"),method="glm", method.args = list(family="binomial")) + geom_smooth(data = wolfkde, aes(x=deer_w2, y=used, col="Deer"),method="glm", method.args = list(family="binomial"))+ geom_smooth(data = wolfkde, aes(x=moose_w2, y=used, col="Moose"),method="glm", method.args = list(family="binomial"))+ geom_smooth(data = wolfkde, aes(x=sheep_w2, y=used, col="Sheep"),method="glm", method.args = list(family="binomial"))+ geom_smooth(data = wolfkde, aes(x=goat_w2, y=used, col="Goat"),method="glm", method.args = list(family="binomial")) + xlab("Relative prey habitat suitability") + ylab("Relative probability of wolf use") + theme(axis.title.y=element_text(size=12), axis.text.y=element_text(size=12)) + theme(axis.title.x=element_text(size=12), axis.text.x=element_text(size=12))+ labs(fill="Prey Species")
 
-figPrey
+figPrey #the problem with this is that it makes it looks like a multiple regression but really it's just multiple univariate regressions graphed on top of each other
   
 ## lets save this
 pdf("Output/figPrey.pdf", width=6, height=6)
+figPrey
+dev.off()
+
+tiff("Output/figPrey.tif", width = 6, height =6, units = "in", res = 300)
 figPrey
 dev.off()
 ```
